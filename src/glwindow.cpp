@@ -13,8 +13,6 @@
 
 using namespace std;
 
-string mode = "NONE";
-glm::vec3 position = glm::vec3(0,0,5);
 const char* glGetErrorString(GLenum error)
 {
     switch(error)
@@ -135,10 +133,22 @@ GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path
 
 OpenGLWindow::OpenGLWindow()
 {
+	parentEntity.position = glm::vec3(0.0f, 0.0f, 0.0f);
+    parentEntity.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    parentEntity.scale = glm::vec3(1.0f, 1.0f, 1.0f);
+
+    childEntity.position = glm::vec3(1.0f, 0.0f, 0.0f);
+    childEntity.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+    childEntity.scale = glm::vec3(0.5f, 0.5f, 0.5f);
+
+    colorIndex = 0;
+    translateDirection = 0;
+    rotateDirection = 0;
+    scaleDirection = 0;
 }
 
 
-void OpenGLWindow::initGL(GeometryData geometry)
+void OpenGLWindow::initGL()
 {
     // We need to first specify what type of OpenGL context we need before we can create the window
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -177,9 +187,8 @@ void OpenGLWindow::initGL(GeometryData geometry)
     cout << "\tGLSL Version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << endl;
 
     glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
     glEnable(GL_CULL_FACE);
-    //glCullFace(GL_BACK);
+    glCullFace(GL_BACK);
     glClearColor(0,0,0,1);
 
     glGenVertexArrays(1, &vao);
@@ -190,22 +199,29 @@ void OpenGLWindow::initGL(GeometryData geometry)
     // then you need to place these files in build as well)
     GLuint shader = LoadShaders("simple.vert", "simple.frag");
     glUseProgram(shader);
+	
+	// Set our viewing and projection matrices, since these do not change over time
+    glm::mat4 projectionMat = glm::perspective(glm::radians(90.0f), 4.0f/3.0f, 0.1f, 10.0f);
+    int projectionMatrixLoc = glGetUniformLocation(shader, "projectionMatrix");
+    glUniformMatrix4fv(projectionMatrixLoc, 1, false, &projectionMat[0][0]);
+	
+	glm::vec3 eyeLoc(0.0f, 0.0f, 2.0f);
+    glm::vec3 targetLoc(0.0f, 0.0f, 0.0f);
+    glm::vec3 upDir(0.0f, 1.0f, 0.0f);
+    glm::mat4 viewingMat = glm::lookAt(eyeLoc, targetLoc, upDir);
+    int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
+    glUniformMatrix4fv(viewingMatrixLoc, 1, false, &viewingMat[0][0]);
+	
+	// Load the model that we want to use and buffer the vertex attributes
+	geometry.loadFromOBJFile("cube.obj");
 
-    int colorLoc = glGetUniformLocation(shader, "objectColor");
-    glUniform3f(colorLoc, 1.0f, 1.0f, 1.0f);
-
-    // Load the model that we want to use and buffer the vertex attributes
-    float vertices[geometry.GeometryData::getVertices().size()];
-    for (int i=0; i<geometry.GeometryData::getVertices().size(); i++) {
-	   vertices[i]=geometry.GeometryData::getVertices()[i]; 
-    }
-    int vertexLoc = glGetAttribLocation(shader, "vertexPosition_modelspace");
-    
+    int vertexLoc = glGetAttribLocation(shader, "position");
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(vertexLoc);
+    glBufferData(GL_ARRAY_BUFFER, 3*geometry.vertexCount()*sizeof(float),
+                 geometry.vertexData(), GL_STATIC_DRAW);
     glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, false, 0, 0);
+    glEnableVertexAttribArray(vertexLoc);
 
     glPrintError("Setup complete", true);
 }
@@ -214,32 +230,51 @@ void OpenGLWindow::render(int vertices)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glDrawArrays(GL_TRIANGLES, 0, vertices);
+    float entityColors[15] = { 1.0f, 1.0f, 1.0f,
+                               1.0f, 0.0f, 0.0f,
+                               0.0f, 1.0f, 0.0f,
+                               0.0f, 0.0f, 1.0f,
+                               0.2f, 0.2f, 0.2f };
+
+    // NOTE: glm::translate/rotate/scale apply the transformation by right-multiplying by the
+    //       corresponding transformation matrix (T). IE glm::translate(M, v) = M * T, not T*M
+    //       This means that the transformation you apply last, will effectively occur first
+    glm::mat4 modelMat(1.0f);
+    modelMat = glm::translate(modelMat, parentEntity.position);
+    modelMat = glm::rotate(modelMat, parentEntity.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+    modelMat = glm::rotate(modelMat, parentEntity.rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+    modelMat = glm::rotate(modelMat, parentEntity.rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+    modelMat = glm::scale(modelMat, parentEntity.scale);
+    int modelMatrixLoc = glGetUniformLocation(shader, "modelMatrix");
+    glUniformMatrix4fv(modelMatrixLoc, 1, false, &modelMat[0][0]);
+
+    int colorLoc = glGetUniformLocation(shader, "objectColor");
+    glUniform3fv(colorLoc, 1, &entityColors[3*colorIndex]);
+
+    glDrawArrays(GL_TRIANGLES, 0, geometry.vertexCount());
+
+    // NOTE: This assumes that we're using the same mesh for the child and parent object, if
+    //       You used a different mesh for the child, you would need to give it its own VAO
+    //       and the bind that and upload all relevant data (IE the other matrices)
+    glm::mat4 childModelMat(1.0f);
+    childModelMat = glm::translate(childModelMat, childEntity.position);
+    childModelMat = glm::rotate(childModelMat, childEntity.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+    childModelMat = glm::rotate(childModelMat, childEntity.rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
+    childModelMat = glm::rotate(childModelMat, childEntity.rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+    childModelMat = glm::scale(childModelMat, childEntity.scale);
+
+    childModelMat = modelMat * childModelMat;
+    glUniformMatrix4fv(modelMatrixLoc, 1, false, &childModelMat[0][0]);
+
+    int childColorIndex = (colorIndex+1)%5;
+    glUniform3fv(colorLoc, 1, &entityColors[3*childColorIndex]);
+    glDrawArrays(GL_TRIANGLES, 0, geometry.vertexCount());
 
     // Swap the front and back buffers on the window, effectively putting what we just "drew"
     // onto the screen (whereas previously it only existed in memory)
     SDL_GL_SwapWindow(sdlWin);
 }
 
-void Scale(int direction) {
-	//to the right increases, to the left decreases	
-	glm::vec3 vector = glm::vec3(direction*2, direction*2, direction*2);
-	position+=vector;
-	cout<<"currenty scaling to the "<<direction<<endl;
-}
-
-void Translate(int direction) {
-	std::cout<<"translating"<<std::endl;
-	glm::vec3 vector = glm::vec3(direction*20, direction*20, 20);
-	position+=vector;
-	glm::mat4 ViewMatrix = glm::lookAt(position, glm::vec3(position.x, position.y, position.z), glm::vec3(0,-1,0));
-	glm::mat4 MVP = ViewMatrix*glm::mat4(1.0);
-	glUniformMatrix4fv(1, 1 ,GL_FALSE, &MVP[0][0]);
-}
-
-void Rotation(string direction) {
-	//to the right is anti-clockwise, to the left is clockwise	
-}
 // The program will exit if this function returns false
 bool OpenGLWindow::handleEvent(SDL_Event e)
 {
@@ -252,19 +287,65 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         {
             return false;
         }
-	else if (e.key.keysym.sym == SDLK_s) {mode="S";}
-	else if (e.key.keysym.sym == SDLK_r) {mode="R";}
-	else if (e.key.keysym.sym == SDLK_t) {mode="T";}
-	else if (e.key.keysym.sym == SDLK_a) {
-		if (mode=="S") {Scale(1);}	
-		else if (mode=="R") {}	
-		else if (mode=="T") {Translate(1);}	
-	}
-	else if (e.key.keysym.sym == SDLK_d) {
-		if (mode=="S") {}	
-		else if (mode=="R") {}	
-		else if (mode=="T") {Translate(-1);}
-	}
+        else if(e.key.keysym.sym == SDLK_1)
+        {
+            colorIndex = 0;
+        }
+        else if(e.key.keysym.sym == SDLK_2)
+        {
+            colorIndex = 1;
+        }
+        else if(e.key.keysym.sym == SDLK_3)
+        {
+            colorIndex = 2;
+        }
+        else if(e.key.keysym.sym == SDLK_4)
+        {
+            colorIndex = 3;
+        }
+        else if(e.key.keysym.sym == SDLK_5)
+        {
+            colorIndex = 4;
+        }
+
+        else if(e.key.keysym.sym == SDLK_q)
+        {
+            parentEntity.position[translateDirection] -= 0.5f;
+        }
+        else if(e.key.keysym.sym == SDLK_w)
+        {
+            translateDirection = (translateDirection+1)%3;
+        }
+        else if(e.key.keysym.sym == SDLK_e)
+        {
+            parentEntity.position[translateDirection] += 0.5f;
+        }
+
+        else if(e.key.keysym.sym == SDLK_a)
+        {
+            parentEntity.rotation[rotateDirection] -= glm::radians(15.0f);
+        }
+        else if(e.key.keysym.sym == SDLK_s)
+        {
+            rotateDirection = (rotateDirection+1)%3;
+        }
+        else if(e.key.keysym.sym == SDLK_d)
+        {
+            parentEntity.rotation[rotateDirection] += glm::radians(15.0f);
+        }
+
+        else if(e.key.keysym.sym == SDLK_z)
+        {
+            parentEntity.scale[scaleDirection] -= 0.2f;
+        }
+        else if(e.key.keysym.sym == SDLK_x)
+        {
+            scaleDirection = (scaleDirection+1)%3;
+        }
+        else if(e.key.keysym.sym == SDLK_c)
+        {
+            parentEntity.scale[scaleDirection] += 0.2f;
+        }
     }
     return true;
 }
