@@ -162,7 +162,7 @@ void OpenGLWindow::initGL()
     // Note that this path is relative to your working directory
     // when running the program (IE if you run from within build
     // then you need to place these files in build as well)
-    GLuint shader = loadShaderProgram("simple.vert", "simple.frag");
+    shader = loadShaderProgram("simple.vert", "simple.frag");
     glUseProgram(shader);
 	
 	// Set our viewing and projection matrices, since these do not change over time

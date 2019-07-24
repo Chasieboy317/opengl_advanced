@@ -19,11 +19,7 @@ int SDL_main(int argc, char** argv)
     }
 
     OpenGLWindow window;
-    std::string filename = std::string(argv[1]);
-    GeometryData geometry;
-    geometry.GeometryData::loadFromOBJFile(filename);
-
-    window.initGL(geometry);
+    window.initGL();
 
     bool running = true;
     while(running)
@@ -41,7 +37,7 @@ int SDL_main(int argc, char** argv)
                 running = false;
             }
         }
-        window.render(geometry.GeometryData::vertexCount());
+        window.render();
 
         // We sleep for 10ms here so as to prevent excessive CPU usage
         SDL_Delay(10);
