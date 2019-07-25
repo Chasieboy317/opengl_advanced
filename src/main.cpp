@@ -19,7 +19,7 @@ int SDL_main(int argc, char** argv)
     }
 
     OpenGLWindow window;
-    window.initGL();
+    window.initGL(std::string(argv[argc-1]));
 
     bool running = true;
     while(running)
