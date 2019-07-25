@@ -1,12 +1,11 @@
 #include <iostream>
-#include <sstream>
-#include <fstream>
 #include <stdio.h>
 
 #include "SDL.h"
 #include <GL/glew.h>
-#include "../build/glm/glm/glm.hpp"
-#include "../build/glm/glm/gtc/matrix_transform.hpp"
+
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "glwindow.h"
 #include "geometry.h"
@@ -98,7 +97,7 @@ GLuint loadShaderProgram(const char* vertShaderFilename,
 
 OpenGLWindow::OpenGLWindow()
 {
-	parentEntity.position = glm::vec3(0.0f, 0.0f, 0.0f);
+    parentEntity.position = glm::vec3(0.0f, 0.0f, 0.0f);
     parentEntity.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
     parentEntity.scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
@@ -123,7 +122,7 @@ void OpenGLWindow::initGL()
 
     sdlWin = SDL_CreateWindow("OpenGL Prac 1",
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                              1024, 768, SDL_WINDOW_OPENGL);
+                              640, 480, SDL_WINDOW_OPENGL);
     if(!sdlWin)
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Error", "Unable to create window", 0);
@@ -159,26 +158,23 @@ void OpenGLWindow::initGL()
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    // Note that this path is relative to your working directory
-    // when running the program (IE if you run from within build
-    // then you need to place these files in build as well)
     shader = loadShaderProgram("simple.vert", "simple.frag");
     glUseProgram(shader);
-	
-	// Set our viewing and projection matrices, since these do not change over time
+
+    // Set our viewing and projection matrices, since these do not change over time
     glm::mat4 projectionMat = glm::perspective(glm::radians(90.0f), 4.0f/3.0f, 0.1f, 10.0f);
     int projectionMatrixLoc = glGetUniformLocation(shader, "projectionMatrix");
     glUniformMatrix4fv(projectionMatrixLoc, 1, false, &projectionMat[0][0]);
-	
-	glm::vec3 eyeLoc(0.0f, 0.0f, 2.0f);
+
+    glm::vec3 eyeLoc(0.0f, 0.0f, 2.0f);
     glm::vec3 targetLoc(0.0f, 0.0f, 0.0f);
     glm::vec3 upDir(0.0f, 1.0f, 0.0f);
     glm::mat4 viewingMat = glm::lookAt(eyeLoc, targetLoc, upDir);
     int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
     glUniformMatrix4fv(viewingMatrixLoc, 1, false, &viewingMat[0][0]);
-	
-	// Load the model that we want to use and buffer the vertex attributes
-	geometry.loadFromOBJFile("cube.obj");
+
+    // Load the model that we want to use and buffer the vertex attributes
+    geometry.loadFromOBJFile("cube.obj");
 
     int vertexLoc = glGetAttribLocation(shader, "position");
     glGenBuffers(1, &vertexBuffer);
@@ -191,7 +187,7 @@ void OpenGLWindow::initGL()
     glPrintError("Setup complete", true);
 }
 
-void OpenGLWindow::render(int vertices)
+void OpenGLWindow::render()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
