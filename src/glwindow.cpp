@@ -42,6 +42,7 @@ void glPrintError(const char* label="Unlabelled Error Checkpoint", bool alwaysPr
     }
 }
 
+//method to read shaders from a shader file, create a shader based on the type specified and then compile it
 GLuint loadShader(const char* shaderFilename, GLenum shaderType)
 {
     FILE* shaderFile = fopen(shaderFilename, "r");
@@ -68,6 +69,8 @@ GLuint loadShader(const char* shaderFilename, GLenum shaderType)
     return shader;
 }
 
+//method to create a program, create shaders and then attach it to the program
+//finally link the program and return it 
 GLuint loadShaderProgram(const char* vertShaderFilename,
                        const char* fragShaderFilename)
 {
@@ -95,6 +98,7 @@ GLuint loadShaderProgram(const char* vertShaderFilename,
     return program;
 }
 
+//default constructor for a window, set the default position and rotation of the parent and child entities
 OpenGLWindow::OpenGLWindow()
 {
     parentEntity.position = glm::vec3(0.0f, 0.0f, 0.0f);
