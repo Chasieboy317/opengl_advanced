@@ -116,7 +116,7 @@ OpenGLWindow::OpenGLWindow()
 }
 
 
-void OpenGLWindow::initGL()
+void OpenGLWindow::initGL(string objects [])
 {
     // We need to first specify what type of OpenGL context we need before we can create the window
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -178,7 +178,7 @@ void OpenGLWindow::initGL()
     glUniformMatrix4fv(viewingMatrixLoc, 1, false, &viewingMat[0][0]);
 
     // Load the model that we want to use and buffer the vertex attributes
-    geometry.loadFromOBJFile("cube.obj");
+    geometry.loadFromOBJFile(objects[0]);
 
     int vertexLoc = glGetAttribLocation(shader, "position");
     glGenBuffers(1, &vertexBuffer);

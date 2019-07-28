@@ -13,7 +13,7 @@ class OpenGLWindow
 public:
     OpenGLWindow();
 
-    void initGL();
+    void initGL(std::string objects[]);
     void render();
     bool handleEvent(SDL_Event e);
     void cleanup();

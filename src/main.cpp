@@ -1,6 +1,6 @@
 #include "SDL.h"
-
 #include "glwindow.h"
+#include <iostream>
 
 // In order to make cross-platform development and deployment easy, SDL implements its own main
 // function, and instead calls out to our code at this SDL_main, however on linux this is not
@@ -19,7 +19,16 @@ int SDL_main(int argc, char** argv)
     }
 
     OpenGLWindow window;
-    window.initGL(std::string(argv[argc-1]));
+
+    //initialize string array of all objects to be used in the program
+    std::string objects [argc-1];
+    for (int i=0; i<argc-1; i++) {
+	objects[i]=std::string(argv[i+1]);
+	std::cout<<objects[i]<<std::endl;
+	std::cout<<"hello"<<std::endl;
+	}
+
+    window.initGL(objects);
 
     bool running = true;
     while(running)
