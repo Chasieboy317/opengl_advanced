@@ -12,6 +12,7 @@
 
 using namespace std;
 
+
 const char* glGetErrorString(GLenum error)
 {
     switch(error)
@@ -162,7 +163,8 @@ void OpenGLWindow::initGL(string objects [])
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    shader = loadShaderProgram("simple.vert", "simple.frag");
+    //shader = loadShaderProgram("simple.vert", "simple.frag");
+    shader = loadShaderProgram("phong.vert", "phong.frag");
     glUseProgram(shader);
 
     // Set our viewing and projection matrices, since these do not change over time
@@ -180,15 +182,11 @@ void OpenGLWindow::initGL(string objects [])
     // Load the model that we want to use and buffer the vertex attributes
     geometry.loadFromOBJFile(objects[0]);
 
-    int vertexLoc = glGetAttribLocation(shader, "position");
     glGenBuffers(1, &vertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, 3*geometry.vertexCount()*sizeof(float),
-                 geometry.vertexData(), GL_STATIC_DRAW);
-    glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, false, 0, 0);
-    glEnableVertexAttribArray(vertexLoc);
-
-    glPrintError("Setup complete", true);
+    glBufferData(GL_ARRAY_BUFFER, 3*geometry.vertexCount()*sizeof(float), geometry.vertexData(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(float)*3, 0);
+    glEnableVertexAttribArray(0);
 }
 
 void OpenGLWindow::render()
@@ -212,6 +210,14 @@ void OpenGLWindow::render()
     modelMat = glm::scale(modelMat, parentEntity.scale);
     int modelMatrixLoc = glGetUniformLocation(shader, "modelMatrix");
     glUniformMatrix4fv(modelMatrixLoc, 1, false, &modelMat[0][0]);
+
+    glm::vec3 lpos(1.2f, 1.0f, 2.0f);
+    int lposLoc = glGetUniformLocation(shader, "lpos");
+    glUniform3fv(lposLoc, 1, &lpos[0]);
+
+    glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+    int lightColorLoc(glGetUniformLocation(shader, "lightColor"));
+    glUniform3fv(lightColorLoc, 1, &lightColor[0]);
 
     int colorLoc = glGetUniformLocation(shader, "objectColor");
     glUniform3fv(colorLoc, 1, &entityColors[3*colorIndex]);
