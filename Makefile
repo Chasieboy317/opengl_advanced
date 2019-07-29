@@ -13,7 +13,7 @@ TARGETPATH=$(BUILDDIR)/$(TARGET)
 build: $(OBJ) $(TARGET)
 
 run:
-	cd $(BUILDDIR); ./$(TARGET)
+	cd $(BUILDDIR); ./$(TARGET) cube.obj
 
 $(TARGET): $(OBJ)
 	$(CXX) $(OBJ) -o $(TARGETPATH) $(LFLAGS)
