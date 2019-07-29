@@ -127,7 +127,7 @@ void OpenGLWindow::initGL(string objects [])
 
     sdlWin = SDL_CreateWindow("OpenGL Prac 1",
                               SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                              640, 480, SDL_WINDOW_OPENGL);
+                              1366, 768, SDL_WINDOW_OPENGL);
     if(!sdlWin)
     {
         SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, "Error", "Unable to create window", 0);
@@ -160,11 +160,9 @@ void OpenGLWindow::initGL(string objects [])
     glCullFace(GL_BACK);
     glClearColor(0,0,0,1);
 
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
     //shader = loadShaderProgram("simple.vert", "simple.frag");
     shader = loadShaderProgram("phong.vert", "phong.frag");
+    //shader = loadShaderProgram("gouraud.vert", "gouraud.frag");
     glUseProgram(shader);
 
     // Set our viewing and projection matrices, since these do not change over time
@@ -179,25 +177,32 @@ void OpenGLWindow::initGL(string objects [])
     int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
     glUniformMatrix4fv(viewingMatrixLoc, 1, false, &viewingMat[0][0]);
 
-    // Load the model that we want to use and buffer the vertex attributes
     geometry.loadFromOBJFile(objects[0]);
 
+    //configure cube's vao
+    glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vertexBuffer);
+
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, 3*geometry.vertexCount()*sizeof(float), geometry.vertexData(), GL_STATIC_DRAW);
+
+    glBindVertexArray(vao);
+
+    // Load the model that we want to use and buffer the vertex attributes
+
+    //position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(float)*3, 0);
     glEnableVertexAttribArray(0);
+
+    //normal attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(float)*3, 0);
+    glEnableVertexAttribArray(1);
+
 }
 
 void OpenGLWindow::render()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    float entityColors[15] = { 1.0f, 1.0f, 1.0f,
-                               1.0f, 0.0f, 0.0f,
-                               0.0f, 1.0f, 0.0f,
-                               0.0f, 0.0f, 1.0f,
-                               0.2f, 0.2f, 0.2f };
 
     // NOTE: glm::translate/rotate/scale apply the transformation by right-multiplying by the
     //       corresponding transformation matrix (T). IE glm::translate(M, v) = M * T, not T*M
@@ -211,7 +216,7 @@ void OpenGLWindow::render()
     int modelMatrixLoc = glGetUniformLocation(shader, "modelMatrix");
     glUniformMatrix4fv(modelMatrixLoc, 1, false, &modelMat[0][0]);
 
-    glm::vec3 lpos(1.2f, 1.0f, 2.0f);
+    glm::vec3 lpos(1.3f, 1.0f, 2.0f);
     int lposLoc = glGetUniformLocation(shader, "lpos");
     glUniform3fv(lposLoc, 1, &lpos[0]);
 
@@ -219,28 +224,16 @@ void OpenGLWindow::render()
     int lightColorLoc(glGetUniformLocation(shader, "lightColor"));
     glUniform3fv(lightColorLoc, 1, &lightColor[0]);
 
+    glm::vec3 objectColor (1.0, 0.5f, 0.3f);
     int colorLoc = glGetUniformLocation(shader, "objectColor");
-    glUniform3fv(colorLoc, 1, &entityColors[3*colorIndex]);
+    glUniform3fv(colorLoc, 1, &objectColor[0]);
 
+    glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, geometry.vertexCount());
 
     // NOTE: This assumes that we're using the same mesh for the child and parent object, if
     //       You used a different mesh for the child, you would need to give it its own VAO
     //       and the bind that and upload all relevant data (IE the other matrices)
-    glm::mat4 childModelMat(1.0f);
-    childModelMat = glm::translate(childModelMat, childEntity.position);
-    childModelMat = glm::rotate(childModelMat, childEntity.rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-    childModelMat = glm::rotate(childModelMat, childEntity.rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-    childModelMat = glm::rotate(childModelMat, childEntity.rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-    childModelMat = glm::scale(childModelMat, childEntity.scale);
-
-    childModelMat = modelMat * childModelMat;
-    glUniformMatrix4fv(modelMatrixLoc, 1, false, &childModelMat[0][0]);
-
-    int childColorIndex = (colorIndex+1)%5;
-    glUniform3fv(colorLoc, 1, &entityColors[3*childColorIndex]);
-    glDrawArrays(GL_TRIANGLES, 0, geometry.vertexCount());
-
     // Swap the front and back buffers on the window, effectively putting what we just "drew"
     // onto the screen (whereas previously it only existed in memory)
     SDL_GL_SwapWindow(sdlWin);
