@@ -162,6 +162,7 @@ void OpenGLWindow::initGL(string objects [])
 
     //shader = loadShaderProgram("simple.vert", "simple.frag");
     shader = loadShaderProgram("phong.vert", "phong.frag");
+    //shader = loadShaderProgram("basicLighting.vert", "basicLighting.frag");
     //shader = loadShaderProgram("gouraud.vert", "gouraud.frag");
     glUseProgram(shader);
 
@@ -177,6 +178,7 @@ void OpenGLWindow::initGL(string objects [])
     int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
     glUniformMatrix4fv(viewingMatrixLoc, 1, false, &viewingMat[0][0]);
 
+    // Load the model that we want to use and buffer the vertex attributes
     geometry.loadFromOBJFile(objects[0]);
 
     //configure cube's vao
@@ -188,8 +190,6 @@ void OpenGLWindow::initGL(string objects [])
 
     glBindVertexArray(vao);
 
-    // Load the model that we want to use and buffer the vertex attributes
-
     //position attribute
     glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(float)*3, 0);
     glEnableVertexAttribArray(0);
@@ -197,7 +197,6 @@ void OpenGLWindow::initGL(string objects [])
     //normal attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(float)*3, 0);
     glEnableVertexAttribArray(1);
-
 }
 
 void OpenGLWindow::render()
@@ -215,6 +214,10 @@ void OpenGLWindow::render()
     modelMat = glm::scale(modelMat, parentEntity.scale);
     int modelMatrixLoc = glGetUniformLocation(shader, "modelMatrix");
     glUniformMatrix4fv(modelMatrixLoc, 1, false, &modelMat[0][0]);
+
+    glm::vec3 viewPos (0.0f, 0.0f, 2.0f);
+    int viewPosLoc = glGetUniformLocation(shader, "viewPos");
+    glUniform3fv(viewPosLoc, 1, &viewPos[0]);
 
     glm::vec3 lpos(1.3f, 1.0f, 2.0f);
     int lposLoc = glGetUniformLocation(shader, "lpos");

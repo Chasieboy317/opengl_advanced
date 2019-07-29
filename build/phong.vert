@@ -13,7 +13,7 @@ out vec3 N; out vec3 L; out vec3 E;
 void main() {
 	N=norm.xyz;
 	L=lpos.xyz-position.xyz;
-	E=-position.xyz;
+	E=vec3(viewingMatrix[0]);
 	vec4 transformedPosition = projectionMatrix*viewingMatrix*modelMatrix*vec4(position,1.0f);
     	gl_Position = transformedPosition;
 }
