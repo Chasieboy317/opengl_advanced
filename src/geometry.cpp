@@ -290,6 +290,11 @@ int GeometryData::vertexCount()
     return vertices.size()/3;
 }
 
+int GeometryData::normalCount()
+{
+    return normals.size();
+}
+
 void* GeometryData::vertexData()
 {
     return (void*)&vertices[0];

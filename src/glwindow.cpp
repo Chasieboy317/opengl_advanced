@@ -122,13 +122,6 @@ OpenGLWindow::OpenGLWindow(std::vector<std::string> objects) : objects(objects)
 //default constructor for a window, set the default position and rotation of the parent and child entities
 OpenGLWindow::OpenGLWindow()
 {
-    /*parentEntity.position = glm::vec3(0.0f, 0.0f, 0.0f);
-    parentEntity.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-    parentEntity.scale = glm::vec3(1.0f, 1.0f, 1.0f);
-
-    childEntity.position = glm::vec3(1.0f, 0.0f, 0.0f);
-    childEntity.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-    childEntity.scale = glm::vec3(0.5f, 0.5f, 0.5f);*/
     translateDirection = 0;
     rotateDirection = 0;
     scaleDirection = 0;
@@ -186,7 +179,7 @@ void OpenGLWindow::initGL()
     int projectionMatrixLoc = glGetUniformLocation(shader, "projectionMatrix");
     glUniformMatrix4fv(projectionMatrixLoc, 1, false, &projectionMat[0][0]);
 
-    glm::vec3 eyeLoc(-5.0f, -5.0f, 2.0f);
+    glm::vec3 eyeLoc(0.0f, 0.0f, 2.0f);
     glm::vec3 targetLoc(0.0f, 0.0f, 0.0f);
     glm::vec3 upDir(0.0f, 1.0f, 0.0f);
     glm::mat4 viewingMat = glm::lookAt(eyeLoc, targetLoc, upDir);
@@ -198,19 +191,24 @@ void OpenGLWindow::initGL()
 	glGenVertexArrays(1, &geometry[i].vao);
 	glGenBuffers(1, &geometry[i].vbo);
 	glGenBuffers(1, &geometry[i].ebo);
+	glGenBuffers(1, &geometry[i].nbo);
 
 	glBindVertexArray(geometry[i].vao);
 	glBindBuffer(GL_ARRAY_BUFFER, geometry[i].vbo);
 
 	glBufferData(GL_ARRAY_BUFFER, geometry[i].vertexCount()*3*sizeof(float), geometry[i].vertexData(), GL_STATIC_DRAW);
 
-	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geometry[i].ebo);
-	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, geometry[i].faces.size()*sizeof(float)*3, &geometry[i].faces[0], GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, geometry[i].nbo);
+	glBufferData(GL_ARRAY_BUFFER, geometry[i].normalCount()*sizeof(float), geometry[i].normalData(), GL_STATIC_DRAW); 
 
+	//position attribute
     	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, geometry[i].vbo);
 	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(float)*3, 0);
 
+	//normal attribute
 	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, geometry[i].nbo);
 	glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(float)*3, 0);
 
 	glBindVertexArray(0);
@@ -244,16 +242,12 @@ void OpenGLWindow::render()
     	int projectionMatrixLoc = glGetUniformLocation(shader, "projectionMatrix");
    	glUniformMatrix4fv(projectionMatrixLoc, 1, false, &projectionMat[0][0]);
 
-    	glm::vec3 eyeLoc(-5.0f, -5.0f, 2.0f);
+    	glm::vec3 eyeLoc(0.0f, 0.0f, 2.0f);
     	glm::vec3 targetLoc(0.0f, 0.0f, 0.0f);
     	glm::vec3 upDir(0.0f, 1.0f, 0.0f);
     	glm::mat4 viewingMat = glm::lookAt(eyeLoc, targetLoc, upDir);
     	int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
     	glUniformMatrix4fv(viewingMatrixLoc, 1, false, &viewingMat[0][0]);
-
-	glm::vec3 viewPos (-5.0f, -5.0f, 2.0f);
-    	int viewPosLoc = glGetUniformLocation(shader, "viewPos");
-    	glUniform3fv(viewPosLoc, 1, &viewPos[0]);
 
     	glm::vec3 lpos(1.3f, 1.0f, 2.0f);
     	int lposLoc = glGetUniformLocation(shader, "lpos");
@@ -283,36 +277,20 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
     // A list of keycode constants is available here: https://wiki.libsdl.org/SDL_Keycode
     // Note that SDL provides both Scancodes (which correspond to physical positions on the keyboard)
     // and Keycodes (which correspond to symbols on the keyboard, and might differ across layouts)
+    int selection = 0;
     if(e.type == SDL_KEYDOWN)
     {
         if(e.key.keysym.sym == SDLK_ESCAPE)
         {
             return false;
         }
-        /*else if(e.key.keysym.sym == SDLK_1)
-        {
-            colorIndex = 0;
-        }
-        else if(e.key.keysym.sym == SDLK_2)
-        {
-            colorIndex = 1;
-        }
-        else if(e.key.keysym.sym == SDLK_3)
-        {
-            colorIndex = 2;
-        }
-        else if(e.key.keysym.sym == SDLK_4)
-        {
-            colorIndex = 3;
-        }
-        else if(e.key.keysym.sym == SDLK_5)
-        {
-            colorIndex = 4;
-        }
-
+	else if (e.key.keysym.sym == SDLK_y) {
+	    if (selection==geometry.size()) {selection=0;}
+	    else {selection++;}
+	}
         else if(e.key.keysym.sym == SDLK_q)
         {
-            parentEntity.position[translateDirection] -= 0.5f;
+            entities[selection].position[translateDirection] -= 0.5f;
         }
         else if(e.key.keysym.sym == SDLK_w)
         {
@@ -320,12 +298,12 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         }
         else if(e.key.keysym.sym == SDLK_e)
         {
-            parentEntity.position[translateDirection] += 0.5f;
+            entities[selection].position[translateDirection] += 0.5f;
         }
 
         else if(e.key.keysym.sym == SDLK_a)
         {
-            parentEntity.rotation[rotateDirection] -= glm::radians(15.0f);
+            entities[selection].rotation[rotateDirection] -= glm::radians(15.0f);
         }
         else if(e.key.keysym.sym == SDLK_s)
         {
@@ -333,12 +311,12 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         }
         else if(e.key.keysym.sym == SDLK_d)
         {
-            parentEntity.rotation[rotateDirection] += glm::radians(15.0f);
+            entities[selection].rotation[rotateDirection] += glm::radians(15.0f);
         }
 
         else if(e.key.keysym.sym == SDLK_z)
         {
-            parentEntity.scale[scaleDirection] -= 0.2f;
+            entities[selection].scale[scaleDirection] -= 0.2f;
         }
         else if(e.key.keysym.sym == SDLK_x)
         {
@@ -346,8 +324,8 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         }
         else if(e.key.keysym.sym == SDLK_c)
         {
-            parentEntity.scale[scaleDirection] += 0.2f;
-        }*/
+            entities[selection].scale[scaleDirection] += 0.2f;
+        }
     }
     return true;
 }

@@ -17,15 +17,15 @@ public:
     void loadFromOBJFile(std::string filename);
 
     int vertexCount();
+    int normalCount();
 
     void* vertexData();
     void* textureCoordData();
     void* normalData();
     void* tangentData();
     void* bitangentData();
-    std::vector<FaceData> faces;
 
-    unsigned int vao, vbo, ebo;
+    unsigned int vao, vbo, ebo, nbo;
 
 private:
     std::vector<float> vertices;
@@ -33,6 +33,7 @@ private:
     std::vector<float> normals;
     std::vector<float> tangents;
     std::vector<float> bitangents;
+    std::vector<FaceData> faces;
 
 };
 
