@@ -23,6 +23,9 @@ public:
     void* normalData();
     void* tangentData();
     void* bitangentData();
+    std::vector<FaceData> faces;
+
+    unsigned int vao, vbo, ebo;
 
 private:
     std::vector<float> vertices;
@@ -31,7 +34,6 @@ private:
     std::vector<float> tangents;
     std::vector<float> bitangents;
 
-    std::vector<FaceData> faces;
 };
 
 #endif

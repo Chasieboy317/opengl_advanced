@@ -18,17 +18,14 @@ int SDL_main(int argc, char** argv)
         return 1;
     }
 
-    OpenGLWindow window;
-
-    //initialize string array of all objects to be used in the program
-    std::string objects [argc-1];
+    //initialize vector containing all objects to be used in the program
+    std::vector<std::string> objects;
     for (int i=0; i<argc-1; i++) {
-	objects[i]=std::string(argv[i+1]);
-	std::cout<<objects[i]<<std::endl;
-	std::cout<<"hello"<<std::endl;
-	}
+	objects.push_back(std::string(argv[i+1]));
+    }
 
-    window.initGL(objects);
+    OpenGLWindow window(objects);
+    window.initGL();
 
     bool running = true;
     while(running)

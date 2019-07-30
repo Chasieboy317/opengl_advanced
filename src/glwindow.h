@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 
 #include <glm/vec3.hpp>
+#include <vector>
 
 #include "geometry.h"
 #include "entity.h"
@@ -12,8 +13,10 @@ class OpenGLWindow
 {
 public:
     OpenGLWindow();
+    OpenGLWindow(std::vector<std::string> objects);
 
-    void initGL(std::string objects[]);
+    void initGL();
+    void initOBJ();
     void render();
     bool handleEvent(SDL_Event e);
     void cleanup();
@@ -21,16 +24,12 @@ public:
 private:
     SDL_Window* sdlWin;
     
-    GLuint vao;
     GLuint shader;
-    GLuint vertexBuffer;
 
-    Entity parentEntity;
-    Entity childEntity;
+    std::vector<std::string> objects;
+    std::vector<Entity> entities; 
+    std::vector<GeometryData> geometry;
 
-    GeometryData geometry;
-
-    int colorIndex;
     int translateDirection;
     int rotateDirection;
     int scaleDirection;
