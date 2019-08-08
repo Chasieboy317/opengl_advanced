@@ -51,12 +51,11 @@ void camera::translate(movement direction, float deltaTime) {
 
 void camera::rotate(movement direction) {
 	isRotating = true;
-	if (direction==CLOCKWISE) {count+=1;}
-	else if (direction==ANTICLOCKWISE) {count-=1;}
-	float r = sqrt(pow(pos.x,2)+pow(pos.z, 2));
-	float camX = sin(glm::radians(count)) * r;
-	float camZ = cos(glm::radians(count)) * r;
-	yaw+=count;
+	if (direction==CLOCKWISE) {yaw+=1;}
+	else if (direction==ANTICLOCKWISE) {yaw-=1;}
+	float r = sqrt(pow((pos.x),2)+pow((pos.z), 2));
+	float camX = sin(glm::radians(yaw)) * r;
+	float camZ = cos(glm::radians(yaw)) * r;
 
 	pos = glm::vec3(camX, pos.y, camZ);
 
