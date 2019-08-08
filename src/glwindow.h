@@ -34,9 +34,6 @@ private:
     int translateDirection;
     int rotateDirection;
     int scaleDirection;
-
-    camera c;
-
 };
 
 #endif

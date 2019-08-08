@@ -8,21 +8,25 @@
 class camera {
 	private:
 		glm::vec3 pos;
-		glm::quat orientation;
+		glm::vec3 front;
+		glm::vec3 up;
+		glm::vec3 right;
+		glm::vec3 globalUp;
+
+		float yaw = -90.0f;
+		float pitch = 0.0f;
+
+		float speed;
+		float sens;
+		float zoom;
+
 	public:
 		camera();
-		camera(glm::vec3 &pos, glm::quat &orientation);
-
-		glm::vec3 getPos();
-		glm::quat getOrientation();
+		camera(float speed, float sens, float zoom);
 
 		glm::mat4 getViewMatrix();
 
-		void translate(float x, float y, float z);
-		void rotate(float angle, float x, float y, float z);
-		void yaw(float angle);
-		void pitch(float angle);
-		void roll(float angle);
+		void update();
 };
 
 #endif

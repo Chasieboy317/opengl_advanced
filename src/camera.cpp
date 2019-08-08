@@ -5,17 +5,33 @@
 
 #include "camera.h"
 
-camera::camera() = default;
-camera::camera(glm::vec3 &pos, glm::quat &orientation) : pos(pos), orientation(orientation) {}
+camera::camera() {
+	speed = 2.5f;
+	sens = 0.1f;
+	zoom = 45.0f;
 
-glm::vec3 camera::getPos() {return pos;}
-glm::quat camera::getOrientation() {return orientation;}
+	pos = glm::vec3(0.0f, 0.0f, 2.0f);
+	up = glm::vec3(0.0f, 1.0f, 0.0f);
+	front = glm::vec3(0.0f, 0.0f, -1.0f);
+}
 
-glm::mat4 camera::getViewMatrix() {return glm::translate(glm::mat4_cast(orientation), pos);}
+camera::camera(float speed, float sens, float zoom) : speed(speed), sens(sens), zoom(zoom) {
+	pos = glm::vec3(0.0f, 0.0f, 2.0f);
+	up = glm::vec3(0.0f, 1.0f, 0.0f);
+	front = glm::vec3(0.0f, 0.0f, -1.0f);
+}
 
-void camera::translate(float x, float y, float z) {pos += glm::vec3(x, y, z) * orientation;}
-void camera::rotate(float angle, float x, float y, float z) {orientation *= glm::angleAxis(angle, glm::vec3(x, y, z) * orientation);}
+glm::mat4 camera::getViewMatrix() {return glm::lookAt(pos, pos+front, up);}
 
-void camera::yaw(float angle) { rotate(angle, 0.0f, 1.0f, 0.0f);}
-void camera::pitch(float angle) { rotate(angle, 1.0f, 0.0f, 0.0f);}
-void camera::roll(float angle) { rotate(angle, 0.0f, 0.0f, 1.0f);}
+void camera::update() {
+	glm::vec3 f;
+	f.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	f.y = sin(glm::radians(pitch));
+	f.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+
+	front = glm::normalize(f);
+
+	right = glm::normalize(glm::cross(front, globalUp));
+	up = glm::normalize(glm::cross(right, front));
+}
+

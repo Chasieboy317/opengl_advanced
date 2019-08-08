@@ -13,6 +13,7 @@
 
 using namespace std;
 
+camera c;
 
 const char* glGetErrorString(GLenum error)
 {
@@ -175,18 +176,14 @@ void OpenGLWindow::initGL()
     shader = loadShaderProgram("phong.vert", "phong.frag");
     glUseProgram(shader);
 
-    // Set our viewing and projection matrices, since these do not change over time
+    //setup projection matrix 
     glm::mat4 projectionMat = glm::perspective(glm::radians(90.0f), 4.0f/3.0f, 0.1f, 10.0f);
     int projectionMatrixLoc = glGetUniformLocation(shader, "projectionMatrix");
     glUniformMatrix4fv(projectionMatrixLoc, 1, false, &projectionMat[0][0]);
 
     //setup camera
-    glm::vec3 eyeLoc(0.0f, 0.0f, 2.0f);
-    glm::quat orientation(glm::vec3(0.0f, 0.0f, 0.0f));
-    c = camera(eyeLoc, orientation); 
-    glm::mat4 viewMatrix = c.getViewMatrix();
     int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
-    glUniformMatrix4fv(viewingMatrixLoc, 1, false, &viewMatrix[0][0]);
+    glUniformMatrix4fv(viewingMatrixLoc, 1, false, &c.getViewMatrix()[0][0]);
 
     //setup each object
     for (int i=0; i<geometry.size(); i++) {
@@ -244,12 +241,12 @@ void OpenGLWindow::render()
     	int projectionMatrixLoc = glGetUniformLocation(shader, "projectionMatrix");
    	glUniformMatrix4fv(projectionMatrixLoc, 1, false, &projectionMat[0][0]);
 
-    	glm::vec3 eyeLoc(0.0f, 0.0f, 2.0f);
+    	/*glm::vec3 eyeLoc(0.0f, 0.0f, 2.0f);
     	glm::vec3 targetLoc(0.0f, 0.0f, 0.0f);
     	glm::vec3 upDir(0.0f, 1.0f, 0.0f);
-    	glm::mat4 viewingMat = glm::lookAt(eyeLoc, targetLoc, upDir);
+    	glm::mat4 viewingMat = glm::lookAt(eyeLoc, targetLoc, upDir);*/
     	int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
-    	glUniformMatrix4fv(viewingMatrixLoc, 1, false, &viewingMat[0][0]);
+    	glUniformMatrix4fv(viewingMatrixLoc, 1, false, &c.getViewMatrix()[0][0]);
 
     	glm::vec3 lpos(1.3f, 1.0f, 2.0f);
     	int lposLoc = glGetUniformLocation(shader, "lpos");
