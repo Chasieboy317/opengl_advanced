@@ -8,6 +8,7 @@
 
 #include "geometry.h"
 #include "entity.h"
+#include "camera.h"
 
 class OpenGLWindow
 {
@@ -33,6 +34,9 @@ private:
     int translateDirection;
     int rotateDirection;
     int scaleDirection;
+
+    camera c;
+
 };
 
 #endif

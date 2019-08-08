@@ -9,6 +9,7 @@
 
 #include "glwindow.h"
 #include "geometry.h"
+#include "camera.h"
 
 using namespace std;
 
@@ -179,12 +180,13 @@ void OpenGLWindow::initGL()
     int projectionMatrixLoc = glGetUniformLocation(shader, "projectionMatrix");
     glUniformMatrix4fv(projectionMatrixLoc, 1, false, &projectionMat[0][0]);
 
+    //setup camera
     glm::vec3 eyeLoc(0.0f, 0.0f, 2.0f);
-    glm::vec3 targetLoc(0.0f, 0.0f, 0.0f);
-    glm::vec3 upDir(0.0f, 1.0f, 0.0f);
-    glm::mat4 viewingMat = glm::lookAt(eyeLoc, targetLoc, upDir);
+    glm::quat orientation(glm::vec3(0.0f, 0.0f, 0.0f));
+    c = camera(eyeLoc, orientation); 
+    glm::mat4 viewMatrix = c.getViewMatrix();
     int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
-    glUniformMatrix4fv(viewingMatrixLoc, 1, false, &viewingMat[0][0]);
+    glUniformMatrix4fv(viewingMatrixLoc, 1, false, &viewMatrix[0][0]);
 
     //setup each object
     for (int i=0; i<geometry.size(); i++) {
