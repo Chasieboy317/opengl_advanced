@@ -27,6 +27,8 @@ class camera {
 		glm::mat4 getViewMatrix();
 
 		void update();
+		void translate(glm::vec3 direction, float deltaTime);
+		void rotate();
 };
 
 #endif

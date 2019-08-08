@@ -15,6 +15,10 @@ using namespace std;
 
 camera c;
 
+GLint64 timer;
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
 const char* glGetErrorString(GLenum error)
 {
     switch(error)
@@ -223,7 +227,10 @@ void OpenGLWindow::render()
     //       corresponding transformation matrix (T). IE glm::translate(M, v) = M * T, not T*M
     //       This means that the transformation you apply last, will effectively occur first
     
-    
+    glGetInteger64v(GL_TIMESTAMP, &timer);
+    float currentFrame = timer/1000000.0f;
+    deltaTime = currentFrame-lastFrame;
+    lastFrame = currentFrame;
 
     for (int i=0; i<entities.size(); i++){
 
@@ -241,10 +248,6 @@ void OpenGLWindow::render()
     	int projectionMatrixLoc = glGetUniformLocation(shader, "projectionMatrix");
    	glUniformMatrix4fv(projectionMatrixLoc, 1, false, &projectionMat[0][0]);
 
-    	/*glm::vec3 eyeLoc(0.0f, 0.0f, 2.0f);
-    	glm::vec3 targetLoc(0.0f, 0.0f, 0.0f);
-    	glm::vec3 upDir(0.0f, 1.0f, 0.0f);
-    	glm::mat4 viewingMat = glm::lookAt(eyeLoc, targetLoc, upDir);*/
     	int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
     	glUniformMatrix4fv(viewingMatrixLoc, 1, false, &c.getViewMatrix()[0][0]);
 
@@ -277,6 +280,7 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
     // Note that SDL provides both Scancodes (which correspond to physical positions on the keyboard)
     // and Keycodes (which correspond to symbols on the keyboard, and might differ across layouts)
     int selection = 0;
+    glm::vec3 direction;
     if(e.type == SDL_KEYDOWN)
     {
         if(e.key.keysym.sym == SDLK_ESCAPE)
@@ -293,7 +297,8 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         }
         else if(e.key.keysym.sym == SDLK_w)
         {
-            translateDirection = (translateDirection+1)%3;
+		direction = glm::vec3(0.0f, 0.0f, -1.0f);
+		c.translate(direction, deltaTime);
         }
         else if(e.key.keysym.sym == SDLK_e)
         {
@@ -302,11 +307,13 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
 
         else if(e.key.keysym.sym == SDLK_a)
         {
-            entities[selection].rotation[rotateDirection] -= glm::radians(15.0f);
+	    direction = glm::vec3(0.0f, 0.0f, -1.0f);
+	    c.translate(direction, deltaTime);
         }
         else if(e.key.keysym.sym == SDLK_s)
         {
-            rotateDirection = (rotateDirection+1)%3;
+	    direction = glm::vec3(0.0f, 0.0f, 1.0f);
+	    c.translate(direction, deltaTime);
         }
         else if(e.key.keysym.sym == SDLK_d)
         {
