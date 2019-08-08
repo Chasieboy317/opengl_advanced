@@ -9,7 +9,9 @@ enum movement {
 	FORWARD,
 	BACK,
 	RIGHT,
-	LEFT
+	LEFT,
+	CLOCKWISE,
+	ANTICLOCKWISE
 };
 
 class camera {
@@ -27,6 +29,8 @@ class camera {
 		float sens;
 		float zoom;
 
+		bool isRotating=false;
+
 	public:
 		camera();
 		camera(float speed, float sens, float zoom);
@@ -35,7 +39,7 @@ class camera {
 
 		void update();
 		void translate(movement direction, float deltaTime);
-		void rotate();
+		void rotate(movement direction);
 };
 
 #endif

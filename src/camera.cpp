@@ -5,6 +5,8 @@
 
 #include "camera.h"
 
+float count = 0;
+
 camera::camera() {
 	speed = 2.5f;
 	sens = 0.1f;
@@ -13,7 +15,7 @@ camera::camera() {
 	pos = glm::vec3(0.0f, 0.0f, 2.0f);
 	up = glm::vec3(0.0f, 1.0f, 0.0f);
 	globalUp = up;
-	front = glm::vec3(0.0f, 0.0f, -1.0f);
+	front = glm::vec3(0.0f, 0.0f, 0.0f);
 	update();
 }
 
@@ -21,13 +23,17 @@ camera::camera(float speed, float sens, float zoom) : speed(speed), sens(sens), 
 	pos = glm::vec3(0.0f, 0.0f, 2.0f);
 	up = glm::vec3(0.0f, 1.0f, 0.0f);
 	globalUp = up;
-	front = glm::vec3(0.0f, 0.0f, -1.0f);
+	front = glm::vec3(0.0f, 0.0f, 0.0f);
 	update();
 }
 
-glm::mat4 camera::getViewMatrix() {return glm::lookAt(pos, pos+front, up);}
+glm::mat4 camera::getViewMatrix() {
+	if (isRotating) {return glm::lookAt(pos, glm::vec3(0.0f, 0.0f, 0.0f), up);}	
+	else {return glm::lookAt(pos, pos+front, up);}
+}
 
 void camera::translate(movement direction, float deltaTime) {
+	isRotating = false;
 	float v = speed * deltaTime;	
 	if (direction==FORWARD) {
 		pos+=front*v;
@@ -41,6 +47,20 @@ void camera::translate(movement direction, float deltaTime) {
 	else if (direction==LEFT) {
 		pos-=right*v;
 	}
+}
+
+void camera::rotate(movement direction) {
+	isRotating = true;
+	if (direction==CLOCKWISE) {count+=1;}
+	else if (direction==ANTICLOCKWISE) {count-=1;}
+	float r = sqrt(pow(pos.x,2)+pow(pos.z, 2));
+	float camX = sin(glm::radians(count)) * r;
+	float camZ = cos(glm::radians(count)) * r;
+	yaw+=count;
+
+	pos = glm::vec3(camX, pos.y, camZ);
+
+	update();
 }
 
 void camera::update() {

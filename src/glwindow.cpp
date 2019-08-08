@@ -17,6 +17,7 @@ camera c(0.5f, 0.1f, 45.0f);
 
 GLint64 timer;
 float deltaTime = 0.0f;
+float currentFrame = 0.0f;
 float lastFrame = 0.0f;
 
 const char* glGetErrorString(GLenum error)
@@ -120,6 +121,9 @@ OpenGLWindow::OpenGLWindow(std::vector<std::string> objects) : objects(objects)
 	temp.color = glm::vec3(i, i+1, i+2);
         entities.push_back(temp);
     }
+
+    lights.push_back(glm::vec3(1.3f, 1.0f, 2.0f));
+    lights.push_back(glm::vec3(-1.3f, 1.0f, -2.0f));
 
     translateDirection = 0;
     rotateDirection = 0;
@@ -228,7 +232,7 @@ void OpenGLWindow::render()
     //       This means that the transformation you apply last, will effectively occur first
     
     glGetInteger64v(GL_TIMESTAMP, &timer);
-    float currentFrame = timer/100000000.0f;
+    currentFrame = timer/100000000.0f;
     deltaTime = currentFrame-lastFrame;
     lastFrame = currentFrame;
 
@@ -248,7 +252,13 @@ void OpenGLWindow::render()
     	int projectionMatrixLoc = glGetUniformLocation(shader, "projectionMatrix");
    	glUniformMatrix4fv(projectionMatrixLoc, 1, false, &projectionMat[0][0]);
 
+	//float r = 10.0f;
+	//float camX = sin(timer) * r;
+	//float camZ = cos(timer) * r;
+
+	//glm::mat4 view = glm::lookAt(glm::vec3(camX, 2.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     	int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
+    	//glUniformMatrix4fv(viewingMatrixLoc, 1, false, &c.getViewMatrix()[0][0]);
     	glUniformMatrix4fv(viewingMatrixLoc, 1, false, &c.getViewMatrix()[0][0]);
 
     	glm::vec3 lpos(1.3f, 1.0f, 2.0f);
@@ -293,7 +303,8 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
 	}
         else if(e.key.keysym.sym == SDLK_q)
         {
-            entities[selection].position[translateDirection] -= 0.5f;
+		direction = CLOCKWISE;
+		c.rotate(direction);
         }
         else if(e.key.keysym.sym == SDLK_w)
         {
@@ -302,7 +313,8 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         }
         else if(e.key.keysym.sym == SDLK_e)
         {
-            entities[selection].position[translateDirection] += 0.5f;
+		direction = ANTICLOCKWISE;
+		c.rotate(direction);
         }
 
         else if(e.key.keysym.sym == SDLK_a)

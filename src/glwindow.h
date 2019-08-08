@@ -30,6 +30,7 @@ private:
     std::vector<std::string> objects;
     std::vector<Entity> entities; 
     std::vector<GeometryData> geometry;
+    std::vector<glm::vec3> lights;
 
     int translateDirection;
     int rotateDirection;
