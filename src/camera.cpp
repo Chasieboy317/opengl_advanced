@@ -27,10 +27,20 @@ camera::camera(float speed, float sens, float zoom) : speed(speed), sens(sens), 
 
 glm::mat4 camera::getViewMatrix() {return glm::lookAt(pos, pos+front, up);}
 
-void camera::translate(glm::vec3 direction, float deltaTime) {
+void camera::translate(movement direction, float deltaTime) {
 	float v = speed * deltaTime;	
-	pos += direction * v;
-	update();
+	if (direction==FORWARD) {
+		pos+=front*v;
+	}
+	else if (direction==BACK) {
+		pos-=front*v;		
+	}
+	else if (direction==RIGHT) {
+		pos+=right*v;
+	}
+	else if (direction==LEFT) {
+		pos-=right*v;
+	}
 }
 
 void camera::update() {

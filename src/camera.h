@@ -5,6 +5,13 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/quaternion.hpp>
 
+enum movement {
+	FORWARD,
+	BACK,
+	RIGHT,
+	LEFT
+};
+
 class camera {
 	private:
 		glm::vec3 pos;
@@ -27,7 +34,7 @@ class camera {
 		glm::mat4 getViewMatrix();
 
 		void update();
-		void translate(glm::vec3 direction, float deltaTime);
+		void translate(movement direction, float deltaTime);
 		void rotate();
 };
 

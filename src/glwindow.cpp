@@ -13,7 +13,7 @@
 
 using namespace std;
 
-camera c;
+camera c(0.5f, 0.1f, 45.0f); 
 
 GLint64 timer;
 float deltaTime = 0.0f;
@@ -228,7 +228,7 @@ void OpenGLWindow::render()
     //       This means that the transformation you apply last, will effectively occur first
     
     glGetInteger64v(GL_TIMESTAMP, &timer);
-    float currentFrame = timer/1000000.0f;
+    float currentFrame = timer/100000000.0f;
     deltaTime = currentFrame-lastFrame;
     lastFrame = currentFrame;
 
@@ -280,7 +280,7 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
     // Note that SDL provides both Scancodes (which correspond to physical positions on the keyboard)
     // and Keycodes (which correspond to symbols on the keyboard, and might differ across layouts)
     int selection = 0;
-    glm::vec3 direction;
+    movement direction;
     if(e.type == SDL_KEYDOWN)
     {
         if(e.key.keysym.sym == SDLK_ESCAPE)
@@ -297,7 +297,7 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         }
         else if(e.key.keysym.sym == SDLK_w)
         {
-		direction = glm::vec3(0.0f, 0.0f, -1.0f);
+		direction = FORWARD;
 		c.translate(direction, deltaTime);
         }
         else if(e.key.keysym.sym == SDLK_e)
@@ -307,17 +307,18 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
 
         else if(e.key.keysym.sym == SDLK_a)
         {
-	    direction = glm::vec3(0.0f, 0.0f, -1.0f);
+	    direction = LEFT;
 	    c.translate(direction, deltaTime);
         }
         else if(e.key.keysym.sym == SDLK_s)
         {
-	    direction = glm::vec3(0.0f, 0.0f, 1.0f);
+	    direction = BACK;
 	    c.translate(direction, deltaTime);
         }
         else if(e.key.keysym.sym == SDLK_d)
         {
-            entities[selection].rotation[rotateDirection] += glm::radians(15.0f);
+	    direction = RIGHT;
+	    c.translate(direction, deltaTime);
         }
 
         else if(e.key.keysym.sym == SDLK_z)
