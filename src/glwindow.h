@@ -9,6 +9,7 @@
 #include "geometry.h"
 #include "entity.h"
 #include "camera.h"
+#include "light.h"
 
 class OpenGLWindow
 {
@@ -26,11 +27,12 @@ private:
     SDL_Window* sdlWin;
     
     GLuint shader;
+    GLuint lamp;
 
     std::vector<std::string> objects;
     std::vector<Entity> entities; 
     std::vector<GeometryData> geometry;
-    std::vector<glm::vec3> lights;
+    std::vector<light> lights;
 
     int translateDirection;
     int rotateDirection;

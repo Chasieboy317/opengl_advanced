@@ -10,6 +10,7 @@
 #include "glwindow.h"
 #include "geometry.h"
 #include "camera.h"
+#include "light.h"
 
 using namespace std;
 
@@ -122,8 +123,8 @@ OpenGLWindow::OpenGLWindow(std::vector<std::string> objects) : objects(objects)
         entities.push_back(temp);
     }
 
-    lights.push_back(glm::vec3(1.3f, 1.0f, 2.0f));
-    lights.push_back(glm::vec3(-1.3f, 1.0f, -2.0f));
+    light l1(glm::vec3(1.3, 1.0f, 2.0f), glm::vec3(10.0f, 10.0f, 10.0f));
+    lights.push_back(l1);
 
     translateDirection = 0;
     rotateDirection = 0;
@@ -182,6 +183,7 @@ void OpenGLWindow::initGL()
     glClearColor(0,0,0,1);
 
     shader = loadShaderProgram("phong.vert", "phong.frag");
+    lamp = loadShaderProgram("simple.vert", "phong.frag");
     glUseProgram(shader);
 
     //setup projection matrix 
@@ -221,6 +223,32 @@ void OpenGLWindow::initGL()
 	glBindVertexArray(0);
     }
 
+    for (int i=0; i<lights.size(); i++) {
+	glGenVertexArrays(1, &lights[i].shape.vao);
+	glGenBuffers(1, &lights[i].shape.vbo);
+	glGenBuffers(1, &lights[i].shape.ebo);
+	glGenBuffers(1, &lights[i].shape.nbo);
+
+	glBindVertexArray(lights[i].shape.vao);
+	glBindBuffer(GL_ARRAY_BUFFER, lights[i].shape.vbo);
+
+	glBufferData(GL_ARRAY_BUFFER, lights[i].shape.vertexCount()*3*sizeof(float), lights[i].shape.vertexData(), GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, lights[i].shape.nbo);
+	glBufferData(GL_ARRAY_BUFFER, lights[i].shape.normalCount()*sizeof(float), lights[i].shape.normalData(), GL_STATIC_DRAW); 
+
+	//position attribute
+    	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, lights[i].shape.vbo);
+	glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(float)*3, 0);
+
+	//normal attribute
+	glEnableVertexAttribArray(1);
+	glBindBuffer(GL_ARRAY_BUFFER, lights[i].shape.nbo);
+	glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(float)*3, 0);
+
+	glBindVertexArray(0);
+    }
 }
 
 void OpenGLWindow::render()
@@ -237,6 +265,7 @@ void OpenGLWindow::render()
     lastFrame = currentFrame;
 
     for (int i=0; i<entities.size(); i++){
+	glUseProgram(shader);
 
 	glm::mat4 modelMat(1.0f);
     	modelMat = glm::translate(modelMat, entities[i].position);
@@ -269,8 +298,34 @@ void OpenGLWindow::render()
 
 	glBindVertexArray(geometry[i].vao);
 	glDrawArrays(GL_TRIANGLES,0, geometry[i].vertexCount());
-	glBindVertexArray(0);
     }
+    
+    for (int i=0; i<lights.size(); i++) {
+	glm::mat4 modelMat(1.0f);
+    	modelMat = glm::translate(modelMat, lights[i].pos);
+   	modelMat = glm::rotate(modelMat, entities[i].rotation.x, glm::vec3(0.0f, 0.0f, 1.0f));
+  	modelMat = glm::rotate(modelMat, entities[i].rotation.x, glm::vec3(0.0f, 1.0f, 0.0f));
+    	modelMat = glm::rotate(modelMat, entities[i].rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
+    	modelMat = glm::scale(modelMat, glm::vec3(0.1f)); 
+
+    	int modelMatrixLoc = glGetUniformLocation(shader, "modelMatrix");
+    	glUniformMatrix4fv(modelMatrixLoc, 1, false, &modelMat[0][0]);	    
+
+	glm::mat4 projectionMat = glm::perspective(glm::radians(90.0f), 4.0f/3.0f, 0.1f, 10.0f);
+    	int projectionMatrixLoc = glGetUniformLocation(shader, "projectionMatrix");
+   	glUniformMatrix4fv(projectionMatrixLoc, 1, false, &projectionMat[0][0]);
+
+    	int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
+    	glUniformMatrix4fv(viewingMatrixLoc, 1, false, &c.getViewMatrix()[0][0]);
+
+    	int colorLoc = glGetUniformLocation(shader, "objectColor");
+    	glUniform3fv(colorLoc, 1, &lights[i].colour[0]);
+
+	glBindVertexArray(lights[i].shape.vao);		
+	glDrawArrays(GL_TRIANGLES,0, lights[i].shape.vertexCount());
+    }
+
+    glBindVertexArray(0);
 
     // Swap the front and back buffers on the window, effectively putting what we just "drew"
     // onto the screen (whereas previously it only existed in memory)
