@@ -123,8 +123,12 @@ OpenGLWindow::OpenGLWindow(std::vector<std::string> objects) : objects(objects)
         entities.push_back(temp);
     }
 
-    light l1(glm::vec3(1.3, 1.0f, 2.0f), glm::vec3(10.0f, 10.0f, 10.0f));
+    light l1(glm::vec3(1.3, 1.0f, 2.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    light l2(glm::vec3(-1.3, -1.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    light l3(glm::vec3(1.3, -1.0f, -2.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     lights.push_back(l1);
+    lights.push_back(l2);
+    lights.push_back(l3);
 
     translateDirection = 0;
     rotateDirection = 0;
@@ -284,14 +288,24 @@ void OpenGLWindow::render()
     	int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
     	glUniformMatrix4fv(viewingMatrixLoc, 1, false, &c.getViewMatrix()[0][0]);
 
-    	glm::vec3 lpos(1.3f, 1.0f, 2.0f);
-    	int lposLoc = glGetUniformLocation(shader, "lpos");
-    	glUniform3fv(lposLoc, 1, &lpos[0]);
+	int lposLoc1 = glGetUniformLocation(shader, "lightPositions[0]");
+    	glUniform3fv(lposLoc1, 1, &lights[0].pos[0]);
 
-    	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
-    	int lightColorLoc(glGetUniformLocation(shader, "lightColor"));
-    	glUniform3fv(lightColorLoc, 1, &lightColor[0]);
+	int lposLoc2 = glGetUniformLocation(shader, "lightPositions[1]");
+    	glUniform3fv(lposLoc2, 1, &lights[1].pos[0]);
 
+	int lposLoc3 = glGetUniformLocation(shader, "lightPositions[2]");
+    	glUniform3fv(lposLoc3, 1, &lights[2].pos[0]);
+
+	int lcolLoc1 = glGetUniformLocation(shader, "lightColours[0]");
+    	glUniform3fv(lcolLoc1, 1, &lights[0].colour[0]);
+
+	int lcolLoc2 = glGetUniformLocation(shader, "lightColours[1]");
+    	glUniform3fv(lcolLoc2, 1, &lights[1].colour[0]);
+
+	int lcolLoc3 = glGetUniformLocation(shader, "lightColours[2]");
+    	glUniform3fv(lcolLoc3, 1, &lights[2].colour[0]);
+	
     	glm::vec3 objectColor (1.0, 0.5f, 0.3f);
     	int colorLoc = glGetUniformLocation(shader, "objectColor");
     	glUniform3fv(colorLoc, 1, &objectColor[0]);

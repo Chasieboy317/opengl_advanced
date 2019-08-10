@@ -7,12 +7,11 @@ uniform mat4 projectionMatrix;
 uniform mat4 viewingMatrix;
 uniform mat4 modelMatrix;
 
-uniform vec3 lpos;
-out vec3 N; out vec3 L; out vec3 E;
+out vec3 N; out vec3 pos; out vec3 E;
 
 void main() {
+	pos = position;
 	N=norm.xyz;
-	L=lpos.xyz-position.xyz;
 	E=vec3(viewingMatrix[0]);
 	vec4 transformedPosition = projectionMatrix*viewingMatrix*modelMatrix*vec4(position,1.0f);
     	gl_Position = transformedPosition;
