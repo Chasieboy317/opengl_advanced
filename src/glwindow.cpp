@@ -252,13 +252,7 @@ void OpenGLWindow::render()
     	int projectionMatrixLoc = glGetUniformLocation(shader, "projectionMatrix");
    	glUniformMatrix4fv(projectionMatrixLoc, 1, false, &projectionMat[0][0]);
 
-	//float r = 10.0f;
-	//float camX = sin(timer) * r;
-	//float camZ = cos(timer) * r;
-
-	//glm::mat4 view = glm::lookAt(glm::vec3(camX, 2.0f, camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     	int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
-    	//glUniformMatrix4fv(viewingMatrixLoc, 1, false, &c.getViewMatrix()[0][0]);
     	glUniformMatrix4fv(viewingMatrixLoc, 1, false, &c.getViewMatrix()[0][0]);
 
     	glm::vec3 lpos(1.3f, 1.0f, 2.0f);
@@ -297,51 +291,51 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         {
             return false;
         }
-	else if (e.key.keysym.sym == SDLK_y) {
+	if (e.key.keysym.sym == SDLK_y) {
 	    if (selection==geometry.size()) {selection=0;}
 	    else {selection++;}
 	}
-        else if(e.key.keysym.sym == SDLK_q)
+        if(e.key.keysym.sym == SDLK_q)
         {
 		direction = CLOCKWISE;
 		c.rotate(direction);
         }
-        else if(e.key.keysym.sym == SDLK_w)
+        if(e.key.keysym.sym == SDLK_w)
         {
 		direction = FORWARD;
 		c.translate(direction, deltaTime);
         }
-        else if(e.key.keysym.sym == SDLK_e)
+        if(e.key.keysym.sym == SDLK_e)
         {
 		direction = ANTICLOCKWISE;
 		c.rotate(direction);
         }
 
-        else if(e.key.keysym.sym == SDLK_a)
+        if(e.key.keysym.sym == SDLK_a)
         {
 	    direction = LEFT;
 	    c.translate(direction, deltaTime);
         }
-        else if(e.key.keysym.sym == SDLK_s)
+        if(e.key.keysym.sym == SDLK_s)
         {
 	    direction = BACK;
 	    c.translate(direction, deltaTime);
         }
-        else if(e.key.keysym.sym == SDLK_d)
+        if(e.key.keysym.sym == SDLK_d)
         {
 	    direction = RIGHT;
 	    c.translate(direction, deltaTime);
         }
 
-        else if(e.key.keysym.sym == SDLK_z)
+        if(e.key.keysym.sym == SDLK_z)
         {
             entities[selection].scale[scaleDirection] -= 0.2f;
         }
-        else if(e.key.keysym.sym == SDLK_x)
+        if(e.key.keysym.sym == SDLK_x)
         {
             scaleDirection = (scaleDirection+1)%3;
         }
-        else if(e.key.keysym.sym == SDLK_c)
+        if(e.key.keysym.sym == SDLK_c)
         {
             entities[selection].scale[scaleDirection] += 0.2f;
         }

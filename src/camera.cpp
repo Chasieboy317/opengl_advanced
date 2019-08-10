@@ -16,6 +16,7 @@ camera::camera() {
 	up = glm::vec3(0.0f, 1.0f, 0.0f);
 	globalUp = up;
 	front = glm::vec3(0.0f, 0.0f, 0.0f);
+	isRotating=false;
 	update();
 }
 
@@ -24,16 +25,25 @@ camera::camera(float speed, float sens, float zoom) : speed(speed), sens(sens), 
 	up = glm::vec3(0.0f, 1.0f, 0.0f);
 	globalUp = up;
 	front = glm::vec3(0.0f, 0.0f, 0.0f);
+	isRotating=false;
 	update();
 }
 
 glm::mat4 camera::getViewMatrix() {
-	if (isRotating) {return glm::lookAt(pos, glm::vec3(0.0f, 0.0f, 0.0f), up);}	
-	else {return glm::lookAt(pos, pos+front, up);}
+	if (!isRotating) {
+		return glm::lookAt(pos, pos+front, up);
+	}
+	else {
+		return glm::lookAt(pos, pivot, up);
+	}
 }
 
 void camera::translate(movement direction, float deltaTime) {
-	isRotating = false;
+	if (isRotating) {
+		update();
+		isRotating=false;
+	}
+	else {isRotating=false;}
 	float v = speed * deltaTime;	
 	if (direction==FORWARD) {
 		pos+=front*v;
@@ -58,11 +68,11 @@ void camera::rotate(movement direction) {
 	float camZ = cos(glm::radians(yaw)) * r;
 
 	pos = glm::vec3(camX, pos.y, camZ);
-
-	update();
 }
 
 void camera::update() {
+	yaw=-90.0f;
+	pos = glm::vec3(0.0f, 0.0f, 2.0f);
 	glm::vec3 f;
 	f.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 	f.y = sin(glm::radians(pitch));

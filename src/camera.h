@@ -21,6 +21,7 @@ class camera {
 		glm::vec3 up;
 		glm::vec3 right;
 		glm::vec3 globalUp;
+		glm::vec3 pivot;
 
 		float yaw = -90.0f;
 		float pitch = 0.0f;
