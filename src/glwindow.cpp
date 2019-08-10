@@ -123,9 +123,9 @@ OpenGLWindow::OpenGLWindow(std::vector<std::string> objects) : objects(objects)
         entities.push_back(temp);
     }
 
-    light l1(glm::vec3(1.3, 1.0f, 2.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    light l2(glm::vec3(-1.3, -1.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    light l3(glm::vec3(1.3, -1.0f, -2.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    light l1(glm::vec3(0.0f, 1.0f, 2.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    light l2(glm::vec3(-1.3f, -1.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    light l3(glm::vec3(1.3f, -1.0f, -2.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     lights.push_back(l1);
     lights.push_back(l2);
     lights.push_back(l3);
@@ -408,6 +408,9 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         {
             entities[selection].scale[scaleDirection] += 0.2f;
         }
+	if (e.key.keysym.sym == SDLK_y) {
+		lights[0].orbit(1, 0.8f);		
+	}
     }
     return true;
 }
