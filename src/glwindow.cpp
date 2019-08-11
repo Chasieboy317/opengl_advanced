@@ -116,16 +116,16 @@ OpenGLWindow::OpenGLWindow(std::vector<std::string> objects) : objects(objects)
 
 	//set the position of each entity to be used when creating the models
         Entity temp;
-	temp.position = glm::vec3(i, i, i);
+	temp.position = glm::vec3((i+1)*i, 0.0f, (i+1)*i);
 	temp.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 	temp.scale = glm::vec3(1.0f, 1.0f, 1.0f);
 	temp.color = glm::vec3(i, i+1, i+2);
         entities.push_back(temp);
     }
 
-    light l1(glm::vec3(0.0f, 1.0f, 2.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    light l2(glm::vec3(-1.3f, -1.0f, -2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    light l3(glm::vec3(1.3f, -1.0f, -2.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    light l1(glm::vec3(0.0f, 2.0f, 2.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    light l2(glm::vec3(2.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    light l3(glm::vec3(2.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     lights.push_back(l1);
     lights.push_back(l2);
     lights.push_back(l3);
@@ -187,7 +187,6 @@ void OpenGLWindow::initGL()
     glClearColor(0,0,0,1);
 
     shader = loadShaderProgram("phong.vert", "phong.frag");
-    lamp = loadShaderProgram("simple.vert", "phong.frag");
     glUseProgram(shader);
 
     //setup projection matrix 
@@ -226,7 +225,8 @@ void OpenGLWindow::initGL()
 
 	glBindVertexArray(0);
     }
-
+	
+    //setup each light
     for (int i=0; i<lights.size(); i++) {
 	glGenVertexArrays(1, &lights[i].shape.vao);
 	glGenBuffers(1, &lights[i].shape.vbo);
@@ -268,8 +268,8 @@ void OpenGLWindow::render()
     deltaTime = currentFrame-lastFrame;
     lastFrame = currentFrame;
 
+    //render loop for all objects
     for (int i=0; i<entities.size(); i++){
-	glUseProgram(shader);
 
 	glm::mat4 modelMat(1.0f);
     	modelMat = glm::translate(modelMat, entities[i].position);
@@ -288,25 +288,15 @@ void OpenGLWindow::render()
     	int viewingMatrixLoc = glGetUniformLocation(shader, "viewingMatrix");
     	glUniformMatrix4fv(viewingMatrixLoc, 1, false, &c.getViewMatrix()[0][0]);
 
-	int lposLoc1 = glGetUniformLocation(shader, "lightPositions[0]");
-    	glUniform3fv(lposLoc1, 1, &lights[0].pos[0]);
+	//give the info of light positions and colours to the shader program
+    	glUniform3fv(glGetUniformLocation(shader, "lightPositions[0]"), 1, &lights[0].pos[0]);
+    	glUniform3fv(glGetUniformLocation(shader, "lightPositions[1]"), 1, &lights[1].pos[0]);
+    	glUniform3fv(glGetUniformLocation(shader, "lightPositions[2]"), 1, &lights[2].pos[0]);
+    	glUniform3fv(glGetUniformLocation(shader, "lightColours[0]"), 1, &lights[0].colour[0]);
+    	glUniform3fv(glGetUniformLocation(shader, "lightColours[1]"), 1, &lights[1].colour[0]);
+    	glUniform3fv(glGetUniformLocation(shader, "lightColours[2]"), 1, &lights[2].colour[0]);
 
-	int lposLoc2 = glGetUniformLocation(shader, "lightPositions[1]");
-    	glUniform3fv(lposLoc2, 1, &lights[1].pos[0]);
-
-	int lposLoc3 = glGetUniformLocation(shader, "lightPositions[2]");
-    	glUniform3fv(lposLoc3, 1, &lights[2].pos[0]);
-
-	int lcolLoc1 = glGetUniformLocation(shader, "lightColours[0]");
-    	glUniform3fv(lcolLoc1, 1, &lights[0].colour[0]);
-
-	int lcolLoc2 = glGetUniformLocation(shader, "lightColours[1]");
-    	glUniform3fv(lcolLoc2, 1, &lights[1].colour[0]);
-
-	int lcolLoc3 = glGetUniformLocation(shader, "lightColours[2]");
-    	glUniform3fv(lcolLoc3, 1, &lights[2].colour[0]);
-	
-    	glm::vec3 objectColor (1.0, 0.5f, 0.3f);
+    	glm::vec3 objectColor (2.0, 2.0f, 2.0f);
     	int colorLoc = glGetUniformLocation(shader, "objectColor");
     	glUniform3fv(colorLoc, 1, &objectColor[0]);
 
@@ -314,12 +304,10 @@ void OpenGLWindow::render()
 	glDrawArrays(GL_TRIANGLES,0, geometry[i].vertexCount());
     }
     
+    //render loop for all lights
     for (int i=0; i<lights.size(); i++) {
 	glm::mat4 modelMat(1.0f);
     	modelMat = glm::translate(modelMat, lights[i].pos);
-   	modelMat = glm::rotate(modelMat, entities[i].rotation.x, glm::vec3(0.0f, 0.0f, 1.0f));
-  	modelMat = glm::rotate(modelMat, entities[i].rotation.x, glm::vec3(0.0f, 1.0f, 0.0f));
-    	modelMat = glm::rotate(modelMat, entities[i].rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
     	modelMat = glm::scale(modelMat, glm::vec3(0.1f)); 
 
     	int modelMatrixLoc = glGetUniformLocation(shader, "modelMatrix");
@@ -360,56 +348,111 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
         {
             return false;
         }
+	//change selection of which object to transform
 	if (e.key.keysym.sym == SDLK_y) {
 	    if (selection==geometry.size()) {selection=0;}
 	    else {selection++;}
 	}
+	//orbit the camera clockwise along the y-axis
         if(e.key.keysym.sym == SDLK_q)
         {
 		direction = CLOCKWISE;
 		c.rotate(direction);
         }
-        if(e.key.keysym.sym == SDLK_w)
-        {
-		direction = FORWARD;
-		c.translate(direction, deltaTime);
-        }
+
+	//orbit the camera anticlockwise along the y-axis
         if(e.key.keysym.sym == SDLK_e)
         {
 		direction = ANTICLOCKWISE;
 		c.rotate(direction);
         }
 
+	//move the camera forward
+	if(e.key.keysym.sym == SDLK_w)
+        {
+		direction = FORWARD;
+		c.translate(direction, deltaTime);
+        }
+
+	//move the camera to the left
         if(e.key.keysym.sym == SDLK_a)
         {
 	    direction = LEFT;
 	    c.translate(direction, deltaTime);
         }
+
+	//move the camera back
         if(e.key.keysym.sym == SDLK_s)
         {
 	    direction = BACK;
 	    c.translate(direction, deltaTime);
         }
+
+	//move the camera to the right
         if(e.key.keysym.sym == SDLK_d)
         {
 	    direction = RIGHT;
 	    c.translate(direction, deltaTime);
         }
 
+	//translate the object along the y-axis
+	if(e.key.keysym.sym == SDLK_UP) { 
+		entities[selection].position.y+=0.2f;
+        }
+
+	//translate the object along the y-axis
+	if(e.key.keysym.sym == SDLK_DOWN)
+        {
+		entities[selection].position.y-=0.2f;
+	}
+
+	//translate the object along the x-axis
+	if(e.key.keysym.sym == SDLK_LEFT)
+        {
+		entities[selection].position.x-=0.2f;
+	}
+
+	//translate the object along the x-axis
+	if(e.key.keysym.sym == SDLK_RIGHT)
+        {
+		entities[selection].position.x+=0.2f;
+	}
+
+	//translate the object along the z-axis
+	if(e.key.keysym.sym == SDLK_RALT)
+        {
+		entities[selection].position.z+=0.2f;
+	}
+
+	//translate the object along the z-axis
+	if(e.key.keysym.sym == SDLK_RCTRL)
+        {
+		entities[selection].position.z-=0.2f;
+	}
+
+	//decrease the scale in some axis
         if(e.key.keysym.sym == SDLK_z)
         {
             entities[selection].scale[scaleDirection] -= 0.2f;
         }
+
+	//change the scale axis
         if(e.key.keysym.sym == SDLK_x)
         {
             scaleDirection = (scaleDirection+1)%3;
         }
+
+	//increase the scale in some axis
         if(e.key.keysym.sym == SDLK_c)
         {
             entities[selection].scale[scaleDirection] += 0.2f;
         }
+
+	//orbit one of the lights around the model
 	if (e.key.keysym.sym == SDLK_y) {
-		lights[0].orbit(1, 0.8f);		
+		lights[0].orbit(0, 2.0f);		
+		lights[1].orbit(1, 2.0f);		
+		lights[2].orbit(2, 2.0f);		
 	}
     }
     return true;
@@ -422,5 +465,11 @@ void OpenGLWindow::cleanup()
 	    glDeleteBuffers(1, &geometry[i].vbo);
 	    glDeleteBuffers(1, &geometry[i].ebo);
     }
+    for (int i=0; i<lights.size(); i++) {
+	    glDeleteVertexArrays(1, &lights[i].shape.vao);
+	    glDeleteBuffers(1, &lights[i].shape.vbo);
+	    glDeleteBuffers(1, &lights[i].shape.ebo);
+    }
+    glDeleteProgram(shader);
     SDL_DestroyWindow(sdlWin);
 }

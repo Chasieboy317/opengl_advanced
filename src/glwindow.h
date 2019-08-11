@@ -27,7 +27,6 @@ private:
     SDL_Window* sdlWin;
     
     GLuint shader;
-    GLuint lamp;
 
     std::vector<std::string> objects;
     std::vector<Entity> entities; 
@@ -37,6 +36,7 @@ private:
     int translateDirection;
     int rotateDirection;
     int scaleDirection;
+
 };
 
 #endif
