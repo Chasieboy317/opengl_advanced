@@ -287,7 +287,7 @@ void GeometryData::loadFromOBJFile(string filename)
     cout << "Successfully loaded an OBJ with " << vertices.size()/3 << " vertices " << endl;
 }
 
-void GeometryData::loadImage(std::string imageName) {
+void GeometryData::loadImage() {
 	image = stbi_load("textureDiffuse.png", &width, &height, &channels, 0);	
 }
 

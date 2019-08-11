@@ -16,7 +16,7 @@ class GeometryData
 public:
     void loadFromOBJFile(std::string filename);
     void freeImage();
-    void loadImage(std::string imageName);
+    void loadImage();
 
     int vertexCount();
     int normalCount();

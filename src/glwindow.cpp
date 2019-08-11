@@ -107,42 +107,13 @@ GLuint loadShaderProgram(const char* vertShaderFilename,
     return program;
 }
 
-OpenGLWindow::OpenGLWindow(std::vector<std::string> objects) : objects(objects) 
-{
-    geometry.resize(objects.size());
-    
-    for (int i=0; i<objects.size(); i++) {
-	geometry[i].loadFromOBJFile(objects[i]); //load the geometry data for each object and store it in the vector
-	geometry[i].loadImage("");
-
-	//set the position of each entity to be used when creating the models
-        Entity temp;
-	temp.position = glm::vec3((i+1)*i, 0.0f, (i+1)*i);
-	temp.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
-	temp.scale = glm::vec3(1.0f, 1.0f, 1.0f);
-	temp.color = glm::vec3(i, i+1, i+2);
-        entities.push_back(temp);
-    }
-
-    light l1(glm::vec3(0.0f, 2.0f, 2.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-    light l2(glm::vec3(2.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    light l3(glm::vec3(2.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    lights.push_back(l1);
-    lights.push_back(l2);
-    lights.push_back(l3);
-
-    translateDirection = 0;
-    rotateDirection = 0;
-    scaleDirection = 0;
-}
-
 OpenGLWindow::OpenGLWindow(std::vector<std::string> objects, bool loadTextures) : objects(objects), loadTextures(loadTextures) 
 {
     geometry.resize(objects.size());
     
     for (int i=0; i<objects.size(); i++) {
 	geometry[i].loadFromOBJFile(objects[i]); //load the geometry data for each object and store it in the vector
-	geometry[i].loadImage("");
+	geometry[i].loadImage();
 
 	//set the position of each entity to be used when creating the models
         Entity temp;
@@ -153,6 +124,7 @@ OpenGLWindow::OpenGLWindow(std::vector<std::string> objects, bool loadTextures) 
         entities.push_back(temp);
     }
 
+    //setup all the lights in the scene
     light l1(glm::vec3(0.0f, 2.0f, 2.0f), glm::vec3(1.0f, 0.0f, 0.0f));
     light l2(glm::vec3(2.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     light l3(glm::vec3(2.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -160,6 +132,7 @@ OpenGLWindow::OpenGLWindow(std::vector<std::string> objects, bool loadTextures) 
     lights.push_back(l2);
     lights.push_back(l3);
 
+    //setup transformations for objects
     translateDirection = 0;
     rotateDirection = 0;
     scaleDirection = 0;
@@ -313,6 +286,7 @@ void OpenGLWindow::render()
     //       corresponding transformation matrix (T). IE glm::translate(M, v) = M * T, not T*M
     //       This means that the transformation you apply last, will effectively occur first
     
+    //used for translating the camera
     glGetInteger64v(GL_TIMESTAMP, &timer);
     currentFrame = timer/100000000.0f;
     deltaTime = currentFrame-lastFrame;
@@ -394,7 +368,6 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
     // A list of keycode constants is available here: https://wiki.libsdl.org/SDL_Keycode
     // Note that SDL provides both Scancodes (which correspond to physical positions on the keyboard)
     // and Keycodes (which correspond to symbols on the keyboard, and might differ across layouts)
-    int selection = 0;
     movement direction;
     if(e.type == SDL_KEYDOWN)
     {
@@ -517,11 +490,13 @@ void OpenGLWindow::cleanup()
     for (int i=0; i<geometry.size(); i++) {
 	    glDeleteVertexArrays(1, &geometry[i].vao);
 	    glDeleteBuffers(1, &geometry[i].vbo);
+	    glDeleteBuffers(1, &geometry[i].nbo);
 	    glDeleteBuffers(1, &geometry[i].ebo);
     }
     for (int i=0; i<lights.size(); i++) {
 	    glDeleteVertexArrays(1, &lights[i].shape.vao);
 	    glDeleteBuffers(1, &lights[i].shape.vbo);
+	    glDeleteBuffers(1, &lights[i].shape.nbo);
 	    glDeleteBuffers(1, &lights[i].shape.ebo);
     }
     glDeleteProgram(shader);
