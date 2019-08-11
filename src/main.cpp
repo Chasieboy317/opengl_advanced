@@ -24,7 +24,9 @@ int SDL_main(int argc, char** argv)
 	objects.push_back(std::string(argv[i+1]));
     }
 
-    OpenGLWindow window(objects);
+    bool loadTextures=false;
+    if (std::string(argv[argc-1])=="true") loadTextures=true; 
+    OpenGLWindow window(objects, loadTextures);
     window.initGL();
 
     bool running = true;

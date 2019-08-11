@@ -15,9 +15,12 @@ class GeometryData
 {
 public:
     void loadFromOBJFile(std::string filename);
+    void freeImage();
+    void loadImage(std::string imageName);
 
     int vertexCount();
     int normalCount();
+    int textureCount();
 
     void* vertexData();
     void* textureCoordData();
@@ -25,7 +28,9 @@ public:
     void* tangentData();
     void* bitangentData();
 
-    unsigned int vao, vbo, ebo, nbo;
+    unsigned int vao, vbo, ebo, nbo, texture1;
+    int width, height, channels;
+    unsigned char* image;
 
 private:
     std::vector<float> vertices;

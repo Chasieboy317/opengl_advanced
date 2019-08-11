@@ -14,7 +14,7 @@
 class OpenGLWindow
 {
 public:
-    OpenGLWindow();
+    OpenGLWindow(std::vector<std::string> objects, bool loadTextures);
     OpenGLWindow(std::vector<std::string> objects);
 
     void initGL();
@@ -36,6 +36,8 @@ private:
     int translateDirection;
     int rotateDirection;
     int scaleDirection;
+
+    bool loadTextures=false;
 
 };
 

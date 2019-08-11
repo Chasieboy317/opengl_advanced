@@ -113,6 +113,7 @@ OpenGLWindow::OpenGLWindow(std::vector<std::string> objects) : objects(objects)
     
     for (int i=0; i<objects.size(); i++) {
 	geometry[i].loadFromOBJFile(objects[i]); //load the geometry data for each object and store it in the vector
+	geometry[i].loadImage("");
 
 	//set the position of each entity to be used when creating the models
         Entity temp;
@@ -134,14 +135,35 @@ OpenGLWindow::OpenGLWindow(std::vector<std::string> objects) : objects(objects)
     rotateDirection = 0;
     scaleDirection = 0;
 }
-//default constructor for a window, set the default position and rotation of the parent and child entities
-OpenGLWindow::OpenGLWindow()
+
+OpenGLWindow::OpenGLWindow(std::vector<std::string> objects, bool loadTextures) : objects(objects), loadTextures(loadTextures) 
 {
+    geometry.resize(objects.size());
+    
+    for (int i=0; i<objects.size(); i++) {
+	geometry[i].loadFromOBJFile(objects[i]); //load the geometry data for each object and store it in the vector
+	geometry[i].loadImage("");
+
+	//set the position of each entity to be used when creating the models
+        Entity temp;
+	temp.position = glm::vec3((i+1)*i, 0.0f, (i+1)*i);
+	temp.rotation = glm::vec3(0.0f, 0.0f, 0.0f);
+	temp.scale = glm::vec3(1.0f, 1.0f, 1.0f);
+	temp.color = glm::vec3(i, i+1, i+2);
+        entities.push_back(temp);
+    }
+
+    light l1(glm::vec3(0.0f, 2.0f, 2.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    light l2(glm::vec3(2.0f, 0.0f, 2.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    light l3(glm::vec3(2.0f, 2.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    lights.push_back(l1);
+    lights.push_back(l2);
+    lights.push_back(l3);
+
     translateDirection = 0;
     rotateDirection = 0;
     scaleDirection = 0;
 }
-
 
 void OpenGLWindow::initGL()
 {
@@ -202,16 +224,16 @@ void OpenGLWindow::initGL()
     for (int i=0; i<geometry.size(); i++) {
 	glGenVertexArrays(1, &geometry[i].vao);
 	glGenBuffers(1, &geometry[i].vbo);
-	glGenBuffers(1, &geometry[i].ebo);
 	glGenBuffers(1, &geometry[i].nbo);
 
 	glBindVertexArray(geometry[i].vao);
-	glBindBuffer(GL_ARRAY_BUFFER, geometry[i].vbo);
 
+	glBindBuffer(GL_ARRAY_BUFFER, geometry[i].vbo);
 	glBufferData(GL_ARRAY_BUFFER, geometry[i].vertexCount()*3*sizeof(float), geometry[i].vertexData(), GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ARRAY_BUFFER, geometry[i].nbo);
 	glBufferData(GL_ARRAY_BUFFER, geometry[i].normalCount()*sizeof(float), geometry[i].normalData(), GL_STATIC_DRAW); 
+
 
 	//position attribute
     	glEnableVertexAttribArray(0);
@@ -223,6 +245,34 @@ void OpenGLWindow::initGL()
 	glBindBuffer(GL_ARRAY_BUFFER, geometry[i].nbo);
 	glVertexAttribPointer(1, 3, GL_FLOAT, false, sizeof(float)*3, 0);
 
+	if (loadTextures) {
+		//setup texture arrays
+		glGenBuffers(1, &geometry[i].ebo);
+		glBindBuffer(GL_ARRAY_BUFFER, geometry[i].ebo);
+		glBufferData(GL_ARRAY_BUFFER, geometry[i].textureCount()*3*sizeof(float), geometry[i].textureCoordData(), GL_STATIC_DRAW); 
+
+		glGenTextures(1, &geometry[i].texture1);
+		glBindTexture(GL_TEXTURE_2D, geometry[i].texture1);
+
+		//texture wrapping parameters
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		//texture filtering paramters
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		//setup texture array
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, geometry[i].width, geometry[i].height, 0, GL_RGB, GL_UNSIGNED_BYTE, geometry[i].image);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		geometry[i].freeImage();
+
+		//texture attribute
+		glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, geometry[i].ebo);
+		glVertexAttribPointer(2, 3, GL_FLOAT, false, sizeof(float)*3, 0); 
+
+		glUniform1i(glGetUniformLocation(shader, "mytexture"), 0);
+	}
 	glBindVertexArray(0);
     }
 	
@@ -300,7 +350,11 @@ void OpenGLWindow::render()
     	int colorLoc = glGetUniformLocation(shader, "objectColor");
     	glUniform3fv(colorLoc, 1, &objectColor[0]);
 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, geometry[i].texture1);
+
 	glBindVertexArray(geometry[i].vao);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glDrawArrays(GL_TRIANGLES,0, geometry[i].vertexCount());
     }
     
@@ -349,7 +403,7 @@ bool OpenGLWindow::handleEvent(SDL_Event e)
             return false;
         }
 	//change selection of which object to transform
-	if (e.key.keysym.sym == SDLK_y) {
+	if (e.key.keysym.sym == SDLK_SPACE) {
 	    if (selection==geometry.size()) {selection=0;}
 	    else {selection++;}
 	}

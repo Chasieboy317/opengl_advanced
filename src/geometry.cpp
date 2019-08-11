@@ -1,6 +1,8 @@
+#define STB_IMAGE_IMPLEMENTATION
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <stb/stb_image.h>
 
 #include <math.h>
 
@@ -285,6 +287,14 @@ void GeometryData::loadFromOBJFile(string filename)
     cout << "Successfully loaded an OBJ with " << vertices.size()/3 << " vertices " << endl;
 }
 
+void GeometryData::loadImage(std::string imageName) {
+	image = stbi_load("textureDiffuse.png", &width, &height, &channels, 0);	
+}
+
+void GeometryData::freeImage() {
+	stbi_image_free(image);	
+}
+
 int GeometryData::vertexCount()
 {
     return vertices.size()/3;
@@ -293,6 +303,11 @@ int GeometryData::vertexCount()
 int GeometryData::normalCount()
 {
     return normals.size();
+}
+
+int GeometryData::textureCount() 
+{
+    return textureCoords.size()/3;	
 }
 
 void* GeometryData::vertexData()
