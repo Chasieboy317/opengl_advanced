@@ -1,9 +1,28 @@
-To run the project, from root run ./build/prac1 build/objects/?.obj
-running "make run" from root will run the program with doggo.obj chosen to be loaded
+To compile the program:
+	run the command "make" from the root folder
 
-Q,E - Translate the objects
-W - Cycle through the axes of translation
-A,D - Rotate the objects
-S - Cycle through the axes of rotation
-Z,C - Scale the objects
-X - Cycle through the axes of scaling
+To run the program:
+	running the command "make run" will start the program in default mode with one model, sphere.obj and texturing not enable
+	to run the program with various arguments, run "./prac1 [model] [true/false to load a texture]"
+	you can load multiple objects into the scene by running a command like "./prac1 cube.obj sphere.obj"
+	to load a texture, add the words 'true' or 'false' at the end of the command "./prac1 cube.obj true" will load a texture onto the cube
+
+NOTE: 
+	There aren't any models that have texture co-ordinates, therefore the textures will not show properly on the model
+
+Controls:
+	Q,E - orbit the camera about the y-axis, clockwise or anti-clockwise
+	W - move the camera forward 
+	A,D - move the camera left or right 
+	S - move the camera backwards 
+	Z,C - Scale the objects
+	X - Cycle through the axes of scaling
+	UP - translate the selected object up along the y-axis
+	DOWN - translate the selected object down along the y-axis
+	LEFT - translate the selected object left along the x-axis
+	RIGHT - translate the selected object right along the x-axis
+	RALT - translate the selected object forwards along the z-axis
+	RCTRL - translate the selected object backwards along the z-axis
+	SPACE - change the object that is selected
+	Y - orbit all the lights around the center of the world
+	ESC - exit the program
